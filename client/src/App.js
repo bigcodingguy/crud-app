@@ -1,18 +1,24 @@
-import logo from './logo.svg';
-import './App.css';
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import logo from './logo.svg';  // Or your chosen logo
+import './App.css';
 
 function App() {
   const [todos, setTodos] = useState([]);
   const [text, setText] = useState('');
+  const [loading, setLoading] = useState(true);
 
   // Fetch todos on component mount
   useEffect(() => {
     axios.get('http://localhost:5001/api/todos')
-      .then(res => setTodos(res.data))
-      .catch(err => console.error(err));
+      .then(res => {
+        setTodos(res.data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
   }, []);
 
   // Create a new todo
@@ -45,33 +51,75 @@ function App() {
       .catch(err => console.error(err));
   };
 
-  return (
-    <div style={{ margin: '2rem' }}>
-      <h1>My To-Do List</h1>
-      <div>
-        <input
-          value={text}
-          onChange={e => setText(e.target.value)}
-          placeholder="New task..."
-        />
-        <button onClick={addTodo}>Add</button>
-      </div>
+  // Handle Enter key press in input
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      addTodo();
+    }
+  };
 
-      <ul>
-        {todos.map(todo => (
-          <li key={todo._id}>
-            <input
-              type="checkbox"
-              checked={todo.completed}
-              onChange={() => toggleComplete(todo._id, todo.completed)}
-            />
-            <span style={{ textDecoration: todo.completed ? 'line-through' : 'none' }}>
-              {todo.text}
-            </span>
-            <button onClick={() => deleteTodo(todo._id)}>Delete</button>
-          </li>
-        ))}
-      </ul>
+  return (
+    <div className="app-container">
+      {/* Banner/Header Section */}
+      <header className="app-header">
+        <div className="logo-container">
+          <img src={logo} className="app-logo" alt="logo" />
+          <h1 className="app-title">Blake's To-Do List</h1>
+        </div>
+      </header>
+
+      {/* Main Section */}
+      <main className="main-content">
+        <div className="todo-input-section">
+          <input
+            value={text}
+            onChange={e => setText(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="New task..."
+            className="todo-input"
+          />
+          <button onClick={addTodo} className="add-button">Add</button>
+        </div>
+
+        {/* Loading Spinner (if loading) */}
+        {loading && (
+          <div className="loading-spinner">
+            <div className="spinner"></div>
+            <p>Loading tasks...</p>
+          </div>
+        )}
+
+        {/* To-Do List */}
+        <ul className="todo-list">
+          {todos.map(todo => (
+            <li key={todo._id} className="todo-item">
+              <div className="checkbox-container">
+                <input
+                  type="checkbox"
+                  checked={todo.completed}
+                  onChange={() => toggleComplete(todo._id, todo.completed)}
+                />
+              </div>
+              <span
+                className={`todo-text ${todo.completed ? 'completed' : ''}`}
+              >
+                {todo.text}
+              </span>
+              <button
+                className="delete-button"
+                onClick={() => deleteTodo(todo._id)}
+              >
+                Delete
+              </button>
+            </li>
+          ))}
+        </ul>
+      </main>
+
+      {/* Footer Section */}
+      <footer className="app-footer">
+        <p>© 2025 Blake's To-Do App. All rights reserved.</p>
+      </footer>
     </div>
   );
 }
